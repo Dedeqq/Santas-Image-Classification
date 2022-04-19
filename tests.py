@@ -16,7 +16,8 @@ import cv2
 import os
 
 import numpy as np
-
+import pandas as pd
+from random import randint
 #%% Load the data
 labels = ['santa', 'not-a-santa']
 img_size = 100
@@ -37,13 +38,6 @@ def get_data(data_dir):
 train = get_data('is that santa\\train')
 test = get_data('is that santa\\test')
 #print(train[100][0]) 
-
-#%% Show some data
-for i in range(12):
-    plt.figure()
-    plt.imshow(train[i*50][0])
-    plt.axis('off')
-    plt.title(labels[train[i*50][1]])
 
 #%%
 x_train = []
@@ -69,13 +63,24 @@ y_train = np.array(y_train)
 x_test.reshape(-1, img_size, img_size, 1)
 y_test = np.array(y_test)
 
-#%%
-for i in range(12):
-    plt.figure()
-    plt.imshow(x_train[i*50])
+#%% Show some data
+row=3; col=4;    
+plt.figure()
+for i in range(row*col):
+    plt.subplot(row,col,i+1)
+    plt.imshow(train[randint(0,306)][0])
     plt.axis('off')
-    plt.title(labels[y_train[i*50]])
-    
+plt.suptitle("Santa")
+plt.show()
+
+   
+plt.figure()
+for i in range(row*col):
+    plt.subplot(row,col,i+1)
+    plt.imshow(train[randint(307,613)][0])
+    plt.axis('off')
+plt.suptitle("Not Santa")
+plt.show()
 #%%
 datagen = ImageDataGenerator(
         featurewise_center=False,  # set input mean to 0 over the dataset
@@ -112,11 +117,11 @@ model.add(Dense(2, activation="softmax"))
 model.summary()
 
 #%%
-opt = Adam(lr=0.000001)
+opt = Adam(lr=0.00001)
 model.compile(optimizer = opt , loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True) , metrics = ['accuracy'])
 
 #%%
-history = model.fit(x_train,y_train,epochs = 100 , validation_data = (x_test, y_test))
+history = model.fit(x_train,y_train,epochs = 200 , validation_data = (x_test, y_test))
 
 #%%
 acc = history.history['accuracy']
@@ -124,7 +129,7 @@ val_acc = history.history['val_accuracy']
 loss = history.history['loss']
 val_loss = history.history['val_loss']
 
-epochs_range = range(100)
+epochs_range = range(200)
 
 plt.figure(figsize=(15, 15))
 plt.subplot(2, 2, 1)
@@ -140,6 +145,10 @@ plt.legend(loc='upper right')
 plt.title('Training and Validation Loss')
 plt.show()
 
+pd.DataFrame(history.history).plot(figsize=(8, 5))
+plt.grid(True)
+plt.gca().set_ylim(0, 1) # set the vertical range to [0-1]
+plt.show()
 #%%
 predict_x=model.predict(x_test) 
 predictions=np.argmax(predict_x,axis=1)
